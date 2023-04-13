@@ -1,28 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
 
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>TNEV - LOGIN</title>
-	<link rel="stylesheet" type="text/css" href="style.css">
-</head>
+session_start();
+include "db_connect.php";
 
-<body>
-	<form action="login.php" method="post" >
-		<h2>LOGIN</h2>
-		<?php if(isset($_GET['error'])){ ?>
-				<p class= "error"><?php echo $_GET['error']; ?></p>
-		<?php } ?>
-		<label>User Name</label><br>
-		<input type="text" name="uname" placeholder="User Name"><br><br>
+if (isset($_POST['uname']) && isset($_POST['password'])) {
+    function validate($data)
+    {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data);
+        return $data;
+    }
+    $uname = validate($_POST['uname']);
+    $pass = validate($_POST['password']);
 
-			<label>Password</label><br>
-			<input type="password" name="password" placeholder="Password"><br><br>
-
-				<button type="submit">Login</button>
-	</form>
-</body>
-
-</html>
+    if (empty($uname)) {
+        header("Location: index.php?error=Username is required to login");
+        exit();
+    } else if (empty($pass)) {
+        header("Location: index.php?error=Password is required to login");
+        exit();
+    } else {
+        $sql = "SELECT * FROM 'users_tnev' WHERE user_name = '$uname' AND password = '$pass'";
+        $result = mysqli_query($conn, $sql);
+        if (mysqli_num_rows($result) === 1) {
+            $row = mysqli_fetch_assoc($result);
+            $_SESSION['user_name'] = $row['user_name'];
+            $_SESSION['name'] = $row['name'];
+            $_SESSION['id'] = $row['id'];
+            header("Location: home.php");
+            exit();
+        } else {
+            header("Location: index.php?error=Incorrect username or password");
+            exit();
+        }
+    }
+} else {
+    header("Location: index.php?error=Please enter both username and password");
+    exit();
+}
